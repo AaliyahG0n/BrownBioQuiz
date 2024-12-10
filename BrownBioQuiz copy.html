@@ -1,0 +1,268 @@
+<!doctype html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brown Bio Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fffaf0;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333333;
+    }
+
+    button {
+      display: inline-block;
+      background-color: #ffc0cb;
+      color: white;
+      font-size: 16px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    button:hover {
+      background-color: #ff9999;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .navigation-buttons {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .exit-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #ffeb99;
+      color: #333;
+    }
+
+    .exit-button:hover {
+      background-color: #ffd966;
+    }
+
+    .flashcard {
+      background-color: #ffeb99;
+      color: #333;
+      padding: 20px;
+      margin: 20px auto;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+    }
+
+    .flashcard.flipped {
+      background-color: #ffc0cb;
+    }
+  </style>
+</head>
+<body>
+  <!-- Start Screen -->
+  <div id="startScreen" class="container">
+    <h1>Brown Bio Quiz</h1>
+    <button onclick="startQuiz()">Start Quiz</button>
+    <button onclick="startFlashcards()">Flashcards</button>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quizScreen" class="container hidden">
+    <button class="exit-button" onclick="exitToStart()">Exit</button>
+    <div id="quizContent"></div>
+    <div class="navigation-buttons">
+      <button onclick="previousQuestion()">Previous</button>
+      <button onclick="nextQuestion()">Next</button>
+    </div>
+    <button id="submitQuiz" onclick="submitQuiz()" class="hidden">Submit Quiz</button>
+  </div>
+
+  <!-- Results Screen -->
+  <div id="resultsScreen" class="container hidden">
+    <button class="exit-button" onclick="exitToStart()">Exit</button>
+    <h2>Results</h2>
+    <div id="resultsContent"></div>
+    <button onclick="retakeMissed()">Retake Missed Questions</button>
+    <button onclick="exitToStart()">Back to Start</button>
+  </div>
+
+  <!-- Flashcards Screen -->
+  <div id="flashcardsScreen" class="container hidden">
+    <button class="exit-button" onclick="exitToStart()">Exit</button>
+    <div id="flashcardsContent"></div>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "What is DNA, and what is its primary function?",
+        choices: [
+          "a. DNA is a molecule that provides energy for cellular processes.",
+          "b. DNA is a molecule that contains genetic instructions for development and reproduction.",
+          "c. DNA is a protein that builds cellular structures.",
+          "d. DNA is a sugar molecule found in all cells."
+        ],
+        answer: "b"
+      },
+      {
+        question: "Who discovered the structure of DNA?",
+        choices: [
+          "a. Charles Darwin and Gregor Mendel",
+          "b. Rosalind Franklin and Edwin Chargaff",
+          "c. James Watson and Francis Crick",
+          "d. Louis Pasteur and Robert Hooke"
+        ],
+        answer: "c"
+      },
+      {
+        question: "Why is DNA replication described as 'semi-conservative'?",
+        choices: [
+          "a. Each new DNA molecule is identical to the original.",
+          "b. Each new DNA molecule contains two original strands.",
+          "c. Each new DNA molecule contains one original strand and one new strand.",
+          "d. Each new DNA molecule contains all-new material."
+        ],
+        answer: "c"
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let userAnswers = [];
+
+    function startQuiz() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("quizScreen").classList.remove("hidden");
+      currentQuestionIndex = 0;
+      userAnswers = [];
+      showQuestion();
+    }
+
+    function startFlashcards() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("flashcardsScreen").classList.remove("hidden");
+      const flashcardsContent = document.getElementById("flashcardsContent");
+      flashcardsContent.innerHTML = "";
+      quizData.forEach((item, index) => {
+        const card = document.createElement("div");
+        card.classList.add("flashcard");
+        card.innerText = item.question;
+        card.onclick = () => {
+          card.innerText = card.classList.contains("flipped")
+            ? item.question
+            : `Answer: ${item.answer}`;
+          card.classList.toggle("flipped");
+        };
+        flashcardsContent.appendChild(card);
+      });
+    }
+
+    function exitToStart() {
+      document.querySelectorAll(".container").forEach(container => {
+        container.classList.add("hidden");
+      });
+      document.getElementById("startScreen").classList.remove("hidden");
+    }
+
+    function showQuestion() {
+      const quizContent = document.getElementById("quizContent");
+      const question = quizData[currentQuestionIndex];
+      quizContent.innerHTML = `
+        <h3>Q${currentQuestionIndex + 1}: ${question.question}</h3>
+        <ul>
+          ${question.choices
+            .map(
+              (choice, i) => `
+            <li>
+              <label>
+                <input type="radio" name="question${currentQuestionIndex}" value="${choice[0]}"
+                ${userAnswers[currentQuestionIndex] === choice[0] ? "checked" : ""}>
+                ${choice}
+              </label>
+            </li>
+          `
+            )
+            .join("")}
+        </ul>
+      `;
+      document.getElementById("submitQuiz").classList.toggle(
+        "hidden",
+        currentQuestionIndex !== quizData.length - 1
+      );
+    }
+
+    function nextQuestion() {
+      saveAnswer();
+      if (currentQuestionIndex < quizData.length - 1) {
+        currentQuestionIndex++;
+        showQuestion();
+      }
+    }
+
+    function previousQuestion() {
+      saveAnswer();
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        showQuestion();
+      }
+    }
+
+    function saveAnswer() {
+      const selected = document.querySelector(
+        `input[name="question${currentQuestionIndex}"]:checked`
+      );
+      if (selected) {
+        userAnswers[currentQuestionIndex] = selected.value;
+      }
+    }
+
+    function submitQuiz() {
+      saveAnswer();
+      document.getElementById("quizScreen").classList.add("hidden");
+      document.getElementById("resultsScreen").classList.remove("hidden");
+      const resultsContent = document.getElementById("resultsContent");
+      let missedQuestions = [];
+      resultsContent.innerHTML = quizData
+        .map((item, index) => {
+          if (userAnswers[index] !== item.answer) {
+            missedQuestions.push(index);
+            return `<p>Q${index + 1}: You answered ${userAnswers[index] || "nothing"}.
+              Correct answer: ${item.answer}</p>`;
+          }
+          return "";
+        })
+        .join("");
+      resultsContent.innerHTML += missedQuestions.length
+        ? `<p>You missed ${missedQuestions.length} questions.</p>`
+        : `<p>Perfect score!</p>`;
+    }
+
+    function retakeMissed() {
+      startQuiz();
+    }
+  </script>
+</body>
+</html>
